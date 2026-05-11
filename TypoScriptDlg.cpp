@@ -5,6 +5,10 @@
  * vector   : динамические массивы для diff-масок и DP */
 #include <algorithm>
 #include <vector>
+#include <fstream>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
 
 namespace {
 
@@ -109,7 +113,73 @@ std::vector<DiffToken> BuildDiffTokens(const std::string& entered, const std::st
     std::reverse(tokens.begin(), tokens.end());
     return tokens;
 }
+void SaveHistory(const CString& domain, const TyposquatReport& report)
+{
+    namespace fs = std::filesystem;
 
+    try
+    {
+        fs::create_directories("history");
+
+        std::ofstream file("history/history.txt", std::ios::app);
+
+        if (!file.is_open())
+            return;
+
+        auto now = std::chrono::system_clock::now();
+        std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+
+        tm localTime{};
+        localtime_s(&localTime, &nowTime);
+
+#ifdef UNICODE
+        CT2A domainAnsi(domain);
+        std::string domainStr = domainAnsi.m_psz;
+#else
+        std::string domainStr = domain;
+#endif
+
+        file << "========================================\n";
+        file << "Дата: "
+             << std::put_time(&localTime, "%d.%m.%Y %H:%M:%S")
+             << "\n";
+
+        file << "Домен: " << domainStr << "\n";
+
+        file << "Подозрительный: "
+             << (report.suspicious ? "ДА" : "НЕТ")
+             << "\n";
+
+        file << "Сумма весов: "
+             << report.totalScore
+             << "\n";
+
+        file << "Нормализованный домен: "
+             << report.normalizedInput
+             << "\n";
+
+        if (!report.hits.empty())
+        {
+            file << "Похожие домены:\n";
+
+            for (const auto& hit : report.hits)
+            {
+                file << "  - "
+                     << hit.canonicalPopular
+                     << " | distance="
+                     << hit.editDistance
+                     << " | вес="
+                     << hit.weight
+                     << "\n";
+            }
+        }
+
+        file << "\n";
+    }
+    catch (...)
+    {
+    }
+}
 } // namespace
 
 #ifdef _DEBUG
@@ -462,6 +532,7 @@ void CTypoScriptDlg::OnBnClickedCheck() {
     const std::string u8 = CStringToUtf8(input);
     const TyposquatReport r = detector_.Analyze(u8);
     FillReportRich(r, input);
+    SaveHistory(input, r);
 }
 
 void CTypoScriptDlg::OnBnClickedClear() {
