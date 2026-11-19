@@ -36,6 +36,9 @@
     <ClInclude Include="targetver.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="DatabaseManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -48,6 +51,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="TypoScriptDlg.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseManager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
